@@ -1,19 +1,17 @@
-# DisabilityClaim local stack (placeholder)
-# Backend image/build context is expected under ./backend when implemented.
-
 services:
   db:
     image: postgres:16-alpine
+    container_name: disability-claim-db
     environment:
       POSTGRES_DB: disability_claim
-      POSTGRES_USER: dc
-      POSTGRES_PASSWORD: dc
+      POSTGRES_USER: disability
+      POSTGRES_PASSWORD: disability
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - dc_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dc -d disability_claim"]
+      test: ["CMD-SHELL", "pg_isready -U disability -d disability_claim"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -22,8 +20,8 @@ services:
   #   build: ./backend
   #   environment:
   #     SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/disability_claim
-  #     SPRING_DATASOURCE_USERNAME: dc
-  #     SPRING_DATASOURCE_PASSWORD: dc
+  #     SPRING_DATASOURCE_USERNAME: disability
+  #     SPRING_DATASOURCE_PASSWORD: disability
   #   ports:
   #     - "8080:8080"
   #   depends_on:
@@ -40,6 +38,8 @@ services:
       - "3000:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    profiles:
+      - full
 
 volumes:
   dc_pgdata:

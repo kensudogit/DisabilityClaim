@@ -22,20 +22,16 @@ Spring Boot 3.5 / Java 21 / Gradle / PostgreSQL / Flyway backend for
 From repo root `C:\devlop\DisabilityClaim`:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d db
 ```
 
-## Run application
+既定接続（`application.yml`）:
+
+- URL: `jdbc:postgresql://localhost:5433/disability_claim`
+- USER / PASSWORD: `disability` / `disability`
 
 ```bash
 cd backend
-# if gradle-wrapper.jar is missing:
-gradle wrapper --gradle-version 8.10.2
-
-set DB_URL=jdbc:postgresql://localhost:5432/disability_claim
-set DB_USER=disability
-set DB_PASSWORD=disability
-
 ./gradlew.bat bootRun
 ```
 

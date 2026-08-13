@@ -62,19 +62,24 @@ npm run dev
 - UI: http://localhost:3000
 - API リライト先: `BACKEND_URL`（既定 `http://localhost:8080`）
 
-### Docker Compose
+### Docker Compose（PostgreSQL）
 
-リポジトリ直下で（PostgreSQL / API / フロントを起動する想定）:
+5432 は他プロジェクトで使われがちなので、本アプリの Postgres は **5433** です。
 
 ```bash
-docker compose up --build
+docker compose up -d db
 ```
 
-| サービス | ポート（想定） |
-|----------|----------------|
-| frontend | 3000 |
-| backend  | 8080 |
-| postgres | 5432 |
+| サービス | ポート | 認証 |
+|----------|--------|------|
+| postgres (`db`) | **5433** | `disability` / `disability` / `disability_claim` |
+| backend (`bootRun`) | 8080 | — |
+| frontend | 3000 | — |
+
+```bash
+cd backend
+.\gradlew.bat bootRun
+```
 
 停止:
 
@@ -82,7 +87,7 @@ docker compose up --build
 docker compose down
 ```
 
-> `docker-compose.yml` はバックエンド実装と合わせて整備してください。フロント単体開発時は上記 `npm run dev` で十分です。
+> フロントだけ開発する場合: `cd frontend && npm install && npm run dev`（API は `http://localhost:8080` へリライト）
 
 ## 画面一覧（MVP）
 
@@ -95,4 +100,3 @@ docker compose down
 - `/billing/[batchId]` — フィルタ・計算トレース・検証/確定/出力
 
 単位・金額が未設定の場合、画面には **「制度マスタ未設定」** と表示します。
-"# DisabilityClaim" 
