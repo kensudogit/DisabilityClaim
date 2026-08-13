@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Railway 統合コンテナでは BACKEND_INTERNAL_URL=http://127.0.0.1:8080
+// Railway 統合コンテナでは BACKEND_INTERNAL_URL=http://127.0.0.1:18080（Dockerfile / start.sh）
 // ローカル開発では BACKEND_URL または既定の localhost:8080
 const backendUrl =
   process.env.BACKEND_INTERNAL_URL ||

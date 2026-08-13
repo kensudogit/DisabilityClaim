@@ -1,6 +1,7 @@
 # 単一 Railway サービスで backend (Spring Boot) と frontend (Next.js) を
 # 同一コンテナ内の別プロセスとして起動する統合 Dockerfile。
-# Next.js の rewrites() が /api・/actuator を localhost:8080 (backend) へプロキシする。
+# Next.js は Railway の PORT で公開し、Spring Boot は内部 18080 で待ち受ける。
+# /api/v1 は Route Handler、/actuator は rewrites で 127.0.0.1:18080 へプロキシする。
 
 FROM eclipse-temurin:21-jdk-alpine AS backend-build
 WORKDIR /workspace/backend
@@ -19,7 +20,8 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV BACKEND_INTERNAL_URL=http://localhost:8080
+# build 時の rewrites 先。runtime の start.sh と同じ内部ポートに揃える。
+ENV BACKEND_INTERNAL_URL=http://127.0.0.1:18080
 RUN npm run build
 
 FROM node:22-alpine AS runtime
@@ -39,8 +41,10 @@ COPY --from=frontend-build /workspace/frontend/next.config.ts frontend/next.conf
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-ENV SERVER_PORT=8080
-ENV BACKEND_INTERNAL_URL=http://localhost:8080
+# Railway の PORT（公開）と衝突しない内部ポート。start.sh が最終決定する。
+ENV SERVER_PORT=18080
+ENV INTERNAL_BACKEND_PORT=18080
+ENV BACKEND_INTERNAL_URL=http://127.0.0.1:18080
 ENV NEXT_TELEMETRY_DISABLED=1
 
 EXPOSE 3000

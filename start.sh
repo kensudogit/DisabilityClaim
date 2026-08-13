@@ -1,9 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 
-# Spring Boot: internal only. Railway public PORT is for Next.js.
-export SERVER_PORT="${SERVER_PORT:-8080}"
-export BACKEND_INTERNAL_URL="${BACKEND_INTERNAL_URL:-http://127.0.0.1:${SERVER_PORT}}"
+# Railway は公開ポートを PORT に注入する（しばしば 8080）。
+# Next.js はその PORT で待ち受け、Spring Boot は必ず別の内部ポートを使う。
+PUBLIC_PORT="${PORT:-3000}"
+INTERNAL_BACKEND_PORT="${INTERNAL_BACKEND_PORT:-18080}"
+
+# Dockerfile 既定の SERVER_PORT=8080 が Railway の PORT と衝突しないよう上書きする
+if [ -z "${SERVER_PORT:-}" ] || [ "${SERVER_PORT}" = "${PUBLIC_PORT}" ]; then
+  export SERVER_PORT="${INTERNAL_BACKEND_PORT}"
+fi
+# それでも衝突する場合の最終フォールバック
+if [ "${SERVER_PORT}" = "${PUBLIC_PORT}" ]; then
+  export SERVER_PORT=18080
+fi
+
+export BACKEND_INTERNAL_URL="http://127.0.0.1:${SERVER_PORT}"
 
 urldecode() {
   local value="${1//+/ }"
@@ -51,7 +63,7 @@ if [ -n "${DATABASE_PASSWORD:-}" ] && [ -z "${SPRING_DATASOURCE_PASSWORD:-}" ]; 
   export SPRING_DATASOURCE_PASSWORD="$DATABASE_PASSWORD"
 fi
 
-echo "[start] SERVER_PORT=${SERVER_PORT} PORT=${PORT:-3000}"
+echo "[start] PUBLIC_PORT=${PUBLIC_PORT} SERVER_PORT=${SERVER_PORT} BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}"
 echo "[start] datasource url set=$( [ -n "${SPRING_DATASOURCE_URL:-}" ] && echo yes || echo no ) host=$( echo "${SPRING_DATASOURCE_URL:-}" | sed -e 's#^jdbc:postgresql://##' -e 's#[?].*##' )"
 echo "[start] datasource user set=$( [ -n "${SPRING_DATASOURCE_USERNAME:-}" ] && echo yes || echo no ) password set=$( [ -n "${SPRING_DATASOURCE_PASSWORD:-}" ] && echo yes || echo no )"
 if [ -z "${SPRING_DATASOURCE_URL:-}" ]; then
@@ -61,7 +73,7 @@ fi
 # Backend watchdog: DB 未設定や一時障害で死んでもコンテナ全体を落とさない
 (
   while true; do
-    echo "[backend] starting..."
+    echo "[backend] starting on :${SERVER_PORT} ..."
     java -jar /app/backend/app.jar || true
     echo "[backend] exited; retry in 5s"
     sleep 5
@@ -81,8 +93,7 @@ done
 cd /app/frontend
 # Railway edge は 0.0.0.0 待ち受け必須。HOSTNAME も Next 15 で参照される。
 export HOSTNAME=0.0.0.0
-PUBLIC_PORT="${PORT:-3000}"
-echo "[frontend] starting next on 0.0.0.0:${PUBLIC_PORT}"
+echo "[frontend] starting next on 0.0.0.0:${PUBLIC_PORT} (proxy -> ${BACKEND_INTERNAL_URL})"
 node_modules/.bin/next start -H 0.0.0.0 -p "${PUBLIC_PORT}" &
 FRONTEND_PID=$!
 
