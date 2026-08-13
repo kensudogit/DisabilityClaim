@@ -89,11 +89,14 @@ cd backend
 必要な Variables 例（Postgres プラグイン参照）:
 
 ```
-SPRING_DATASOURCE_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
-SPRING_DATASOURCE_USERNAME=${{Postgres.PGUSER}}
-SPRING_DATASOURCE_PASSWORD=${{Postgres.PGPASSWORD}}
+DATABASE_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
+DATABASE_USERNAME=${{Postgres.PGUSER}}
+DATABASE_PASSWORD=${{Postgres.PGPASSWORD}}
 JWT_SECRET=（本番用ランダム値）
 ```
+
+`postgres://...` 形式の URL も `start.sh` で JDBC に変換します。  
+ヘルスチェックは `/login`（Next.js 直接応答）。backend は内部 8080 で監視・自動再起動します。
 
 停止:
 

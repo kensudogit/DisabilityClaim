@@ -23,7 +23,9 @@ ENV BACKEND_INTERNAL_URL=http://localhost:8080
 RUN npm run build
 
 FROM node:22-alpine AS runtime
-RUN apk add --no-cache openjdk21-jre-headless bash curl
+# Alpine のパッケージ名は環境で差があるため候補を順に入れる
+RUN apk add --no-cache bash curl \
+  && (apk add --no-cache openjdk21-jre || apk add --no-cache openjdk21-jre-headless)
 WORKDIR /app
 
 COPY --from=backend-build /workspace/backend/build/libs/app.jar backend/app.jar

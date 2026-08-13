@@ -8,7 +8,7 @@ import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginPage() {
       const res = await api<LoginResponse>("/api/v1/auth/login", {
         method: "POST",
         auth: false,
-        body: { email, password },
+        body: { username, password },
       });
       setToken(res.accessToken);
       router.push("/");
@@ -36,18 +36,18 @@ export default function LoginPage() {
     <div className={styles.wrap}>
       <div className={`card ${styles.card}`}>
         <h1>ログイン</h1>
-        <p className="muted">障害相談請求システム（MVP）</p>
+        <p className="muted">障害相談請求システム（MVP）・デモ: admin / password123</p>
         {error && <div className="errorBox">{error}</div>}
         <form onSubmit={onSubmit}>
           <div className="field">
-            <label htmlFor="email">メールアドレス</label>
+            <label htmlFor="username">ユーザー名</label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="text"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div className="field">

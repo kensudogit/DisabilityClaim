@@ -2,9 +2,10 @@ spring:
   application:
     name: disability-claim-backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5433/disability_claim}}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:disability}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:disability}}
+    # Railway: DATABASE_URL (jdbc:...) または SPRING_DATASOURCE_URL を推奨
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:${DB_URL:jdbc:postgresql://localhost:5433/disability_claim}}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DATABASE_USERNAME:${DB_USER:disability}}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DATABASE_PASSWORD:${DB_PASSWORD:disability}}}
     driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
@@ -19,6 +20,7 @@ spring:
     locations: classpath:db/migration
 
 server:
+  address: 0.0.0.0
   port: ${SERVER_PORT:8080}
 
 management:
@@ -29,6 +31,10 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+  health:
+    # DB 未接続でも liveness 用 ping は UP にできる（Railway 内部確認用）
+    defaults:
+      enabled: true
 
 app:
   security:
