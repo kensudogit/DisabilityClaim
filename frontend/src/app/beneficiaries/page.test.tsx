@@ -24,6 +24,7 @@ describe("BeneficiariesPage", () => {
     api.mockResolvedValue([]);
     render(<BeneficiariesPage />);
     expect(await screen.findByText("利用者がまだいません。")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /一覧（0件）/ })).toBeInTheDocument();
   });
 
   it("renders beneficiaries from API", async () => {
@@ -69,7 +70,9 @@ describe("BeneficiariesPage", () => {
     render(<BeneficiariesPage />);
     await screen.findByText("利用者がまだいません。");
     await userEvent.type(screen.getByLabelText("匿名コード"), "U-0002");
-    await userEvent.type(screen.getByLabelText("市町村コード"), "999002");
+    const muni = screen.getByLabelText("市町村コード");
+    await userEvent.clear(muni);
+    await userEvent.type(muni, "999002");
     await userEvent.selectOptions(screen.getByLabelText("区分"), "CHILD");
     await userEvent.click(screen.getByRole("button", { name: "登録" }));
     await waitFor(() => {

@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { Beneficiary, BeneficiaryCategory, BeneficiaryStatus } from "@/lib/types";
 import styles from "./beneficiaries.module.css";
 
-const STATUS_LABEL: Record<BeneficiaryStatus, string> = {
+const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "利用中",
   INACTIVE: "終了",
+  CLOSED: "終了",
   SUSPENDED: "休止",
 };
 
@@ -22,17 +23,23 @@ export default function BeneficiariesPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
 
   const [anonymizedCode, setAnonymizedCode] = useState("");
   const [category, setCategory] = useState<BeneficiaryCategory>("ADULT");
-  const [municipalityCode, setMunicipalityCode] = useState("");
+  const [municipalityCode, setMunicipalityCode] = useState("999001");
   const [status, setStatus] = useState<BeneficiaryStatus>("ACTIVE");
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (q: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api<Beneficiary[] | { items: Beneficiary[] }>("/api/v1/beneficiaries");
+      const path =
+        q.trim().length > 0
+          ? `/api/v1/beneficiaries?q=${encodeURIComponent(q.trim())}`
+          : "/api/v1/beneficiaries";
+      const data = await api<Beneficiary[] | { items: Beneficiary[] }>(path);
       setList(Array.isArray(data) ? data : data.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "取得に失敗しました");
@@ -42,8 +49,14 @@ export default function BeneficiariesPage() {
   }, []);
 
   useEffect(() => {
-    void load();
+    void load("");
   }, [load]);
+
+  async function onSearch(e: FormEvent) {
+    e.preventDefault();
+    setSubmittedQuery(query);
+    await load(query);
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
@@ -56,14 +69,17 @@ export default function BeneficiariesPage() {
           anonymizedCode,
           category,
           municipalityCode,
-          status,
+          status: status === "INACTIVE" ? "CLOSED" : status,
+          statusCode: status,
         },
       });
       setAnonymizedCode("");
-      setMunicipalityCode("");
+      setMunicipalityCode("999001");
       setCategory("ADULT");
       setStatus("ACTIVE");
-      await load();
+      setSubmittedQuery("");
+      setQuery("");
+      await load("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "登録に失敗しました");
     } finally {
@@ -71,11 +87,48 @@ export default function BeneficiariesPage() {
     }
   }
 
+  const resultLabel = useMemo(() => {
+    if (submittedQuery) {
+      return `検索結果: 「${submittedQuery}」（${list.length}件）`;
+    }
+    return `一覧（${list.length}件）`;
+  }, [submittedQuery, list.length]);
+
   return (
     <div>
       <h1>利用者</h1>
       <p className="muted">個人を特定できる氏名等は扱わず、匿名コードで管理します。</p>
       {error && <div className="errorBox">{error}</div>}
+
+      <section className={`card ${styles.section}`}>
+        <h2>検索</h2>
+        <form className={styles.form} onSubmit={onSearch}>
+          <div className="field">
+            <label htmlFor="q">キーワード</label>
+            <input
+              id="q"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="匿名コード / 市町村コード / 区分 / 状態"
+            />
+          </div>
+          <button className="btn" type="submit" disabled={loading}>
+            検索
+          </button>
+          <button
+            className="btn btnSecondary"
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setQuery("");
+              setSubmittedQuery("");
+              void load("");
+            }}
+          >
+            クリア
+          </button>
+        </form>
+      </section>
 
       <section className={`card ${styles.section}`}>
         <h2>新規登録</h2>
@@ -108,7 +161,7 @@ export default function BeneficiariesPage() {
               required
               value={municipalityCode}
               onChange={(e) => setMunicipalityCode(e.target.value)}
-              placeholder="例: 131016"
+              placeholder="例: 999001"
             />
           </div>
           <div className="field">
@@ -130,11 +183,13 @@ export default function BeneficiariesPage() {
       </section>
 
       <section className={`card ${styles.section}`}>
-        <h2>一覧</h2>
+        <h2>{resultLabel}</h2>
         {loading ? (
           <p className="muted">読み込み中…</p>
         ) : list.length === 0 ? (
-          <p className="muted">利用者がまだいません。</p>
+          <p className="muted">
+            {submittedQuery ? "該当する利用者がいません。" : "利用者がまだいません。"}
+          </p>
         ) : (
           <table className="table">
             <thead>

@@ -15,6 +15,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "利用中",
   INACTIVE: "終了",
+  CLOSED: "終了",
   SUSPENDED: "休止",
 };
 

@@ -23,8 +23,9 @@ public class BeneficiaryController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','BILLING_MANAGER','BILLING_OPERATOR','VIEWER')")
-    public List<BeneficiaryDtos.BeneficiaryResponse> list() {
-        return beneficiaryService.list();
+    public List<BeneficiaryDtos.BeneficiaryResponse> list(
+            @RequestParam(value = "q", required = false) String q) {
+        return beneficiaryService.search(q);
     }
 
     @GetMapping("/{id}")

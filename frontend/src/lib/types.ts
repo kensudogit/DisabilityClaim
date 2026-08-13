@@ -1,5 +1,5 @@
 export type BeneficiaryCategory = "ADULT" | "CHILD";
-export type BeneficiaryStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type BeneficiaryStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "CLOSED";
 
 export type Beneficiary = {
   id: string;
