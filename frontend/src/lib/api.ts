@@ -43,9 +43,14 @@ export async function api<T = unknown>(
 
   if (auth) {
     const token = getToken();
-    if (token) {
-      reqHeaders.set("Authorization", `Bearer ${token}`);
+    if (!token) {
+      // 未ログインで API を叩くと原因の分かりにくいエラーになるため、手前で止める
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+      throw new ApiError(401, "ログインが必要です");
     }
+    reqHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   const res = await fetch(path.startsWith("/") ? path : `/${path}`, {

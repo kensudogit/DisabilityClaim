@@ -5,15 +5,40 @@ set -euo pipefail
 export SERVER_PORT="${SERVER_PORT:-8080}"
 export BACKEND_INTERNAL_URL="${BACKEND_INTERNAL_URL:-http://127.0.0.1:${SERVER_PORT}}"
 
-# Railway Postgres プラグインが postgres:// を渡す場合に JDBC へ変換
-if [ -n "${DATABASE_URL:-}" ]; then
-  case "$DATABASE_URL" in
+urldecode() {
+  local value="${1//+/ }"
+  printf '%b' "${value//%/\\x}"
+}
+
+# Railway Postgres プラグインが postgres://user:pass@host:port/db を渡す。
+# PostgreSQL JDBC ドライバは URL 内の資格情報を解釈しないため、分離して渡す。
+RAW_DB_URL="${DATABASE_URL:-${DATABASE_PUBLIC_URL:-}}"
+if [ -n "$RAW_DB_URL" ]; then
+  case "$RAW_DB_URL" in
     jdbc:*)
-      export SPRING_DATASOURCE_URL="$DATABASE_URL"
+      export SPRING_DATASOURCE_URL="$RAW_DB_URL"
       ;;
     postgres://*|postgresql://*)
-      export SPRING_DATASOURCE_URL="jdbc:${DATABASE_URL/postgres:/postgresql:}"
-      # jdbc:postgresql://user:pass@host:port/db — Spring は url 内の資格情報も解釈可能
+      authority_and_path="${RAW_DB_URL#*://}"
+      credentials=""
+      host_and_path="$authority_and_path"
+      case "$authority_and_path" in
+        *@*)
+          credentials="${authority_and_path%@*}"
+          host_and_path="${authority_and_path##*@}"
+          ;;
+      esac
+      export SPRING_DATASOURCE_URL="jdbc:postgresql://${host_and_path}"
+      if [ -n "$credentials" ]; then
+        SPRING_DATASOURCE_USERNAME="${SPRING_DATASOURCE_USERNAME:-$(urldecode "${credentials%%:*}")}"
+        export SPRING_DATASOURCE_USERNAME
+        case "$credentials" in
+          *:*)
+            SPRING_DATASOURCE_PASSWORD="${SPRING_DATASOURCE_PASSWORD:-$(urldecode "${credentials#*:}")}"
+            export SPRING_DATASOURCE_PASSWORD
+            ;;
+        esac
+      fi
       ;;
   esac
 fi
@@ -27,7 +52,11 @@ if [ -n "${DATABASE_PASSWORD:-}" ] && [ -z "${SPRING_DATASOURCE_PASSWORD:-}" ]; 
 fi
 
 echo "[start] SERVER_PORT=${SERVER_PORT} PORT=${PORT:-3000}"
-echo "[start] datasource url set=$( [ -n "${SPRING_DATASOURCE_URL:-}${DATABASE_URL:-}" ] && echo yes || echo no )"
+echo "[start] datasource url set=$( [ -n "${SPRING_DATASOURCE_URL:-}" ] && echo yes || echo no ) host=$( echo "${SPRING_DATASOURCE_URL:-}" | sed -e 's#^jdbc:postgresql://##' -e 's#[?].*##' )"
+echo "[start] datasource user set=$( [ -n "${SPRING_DATASOURCE_USERNAME:-}" ] && echo yes || echo no ) password set=$( [ -n "${SPRING_DATASOURCE_PASSWORD:-}" ] && echo yes || echo no )"
+if [ -z "${SPRING_DATASOURCE_URL:-}" ]; then
+  echo "[start] WARNING: DATABASE_URL が未設定です。Railway に PostgreSQL を追加し変数を設定してください。"
+fi
 
 # Backend watchdog: DB 未設定や一時障害で死んでもコンテナ全体を落とさない
 (
