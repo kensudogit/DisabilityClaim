@@ -81,6 +81,20 @@ cd backend
 .\gradlew.bat bootRun
 ```
 
+### Railway（単一サービス）
+
+リポジトリ直下の `Dockerfile` / `railway.toml` / `start.sh` で、Spring Boot + Next.js を同一コンテナで起動します。
+公開ポートは Next.js（`PORT`）、backend は内部 `8080`。`/api`・`/actuator` は Next がプロキシします。
+
+必要な Variables 例（Postgres プラグイン参照）:
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
+SPRING_DATASOURCE_USERNAME=${{Postgres.PGUSER}}
+SPRING_DATASOURCE_PASSWORD=${{Postgres.PGPASSWORD}}
+JWT_SECRET=（本番用ランダム値）
+```
+
 停止:
 
 ```bash

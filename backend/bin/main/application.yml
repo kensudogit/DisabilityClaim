@@ -2,9 +2,9 @@ spring:
   application:
     name: disability-claim-backend
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/disability_claim}
-    username: ${DB_USER:disability}
-    password: ${DB_PASSWORD:disability}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5433/disability_claim}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:disability}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:disability}}
     driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
