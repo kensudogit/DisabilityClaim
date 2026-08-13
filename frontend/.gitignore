@@ -4,3 +4,5 @@ out
 .env*.local
 *.log
 .DS_Store
+# 生成されたテストレポート（scripts/run-tests-and-publish.ps1 で再生成）
+public/test-reports/

@@ -27,6 +27,11 @@ const TILES = [
     title: "監査",
     desc: "請求状態・操作履歴の確認（MVPは請求画面経由）",
   },
+  {
+    href: "/test-reports",
+    title: "テスト結果",
+    desc: "JUnit / Vitest / カバレッジをブラウザで確認",
+  },
 ];
 
 export default function DashboardPage() {

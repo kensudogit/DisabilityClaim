@@ -42,6 +42,35 @@ DisabilityClaim/
 | [docs/open-items.md](docs/open-items.md) | 必要な公式資料チェックリスト |
 | [frontend/README.md](frontend/README.md) | フロントの起動方法 |
 
+## テストとレポート（Web 確認）
+
+全テストを実行し、結果をブラウザで確認できます。
+
+```powershell
+# リポジトリルートで
+.\scripts\run-tests-and-publish.ps1
+cd frontend
+npm run dev
+```
+
+- ハブ画面: http://localhost:3000/test-reports
+- Backend Surefire: http://localhost:3000/test-reports/backend/surefire/index.html
+- Backend JaCoCo: http://localhost:3000/test-reports/backend/jacoco/index.html
+- Frontend Vitest: http://localhost:3000/test-reports/frontend/vitest/index.html
+
+個別実行:
+
+```bash
+# Backend
+cd backend
+.\gradlew.bat test jacocoTestReport publishTestReports
+
+# Frontend
+cd frontend
+npm test
+npm run test:coverage
+```
+
 ## Skill 参照
 
 開発時は Skill `disability-consultation-billing` に従うこと。

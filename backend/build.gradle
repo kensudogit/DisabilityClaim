@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -49,4 +50,30 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = '0.8.12'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+}
+
+/** Surefire + JaCoCo HTML をフロントの public 配下へコピー（Web 確認用） */
+tasks.register('publishTestReports', Copy) {
+    dependsOn test, jacocoTestReport
+    into("${rootProject.projectDir}/../frontend/public/test-reports/backend")
+    from("${layout.buildDirectory.get()}/reports/tests/test") {
+        into 'surefire'
+    }
+    from("${layout.buildDirectory.get()}/reports/jacoco/test/html") {
+        into 'jacoco'
+    }
 }
