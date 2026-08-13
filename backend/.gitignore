@@ -1,0 +1,9 @@
+.gradle/
+build/
+out/
+.tools/
+.idea/
+*.iml
+*.log
+.DS_Store
+_gen_*.py

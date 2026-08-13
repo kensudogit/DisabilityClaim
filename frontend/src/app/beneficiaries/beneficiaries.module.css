@@ -1,0 +1,19 @@
+.section {
+  margin-top: 16px;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px 12px;
+  align-items: end;
+}
+
+.form .field {
+  margin-bottom: 0;
+}
+
+.form button {
+  height: 38px;
+  align-self: end;
+}
