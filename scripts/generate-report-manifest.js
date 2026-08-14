@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
  * Collect backend Surefire XML + frontend Vitest JSON into
- * frontend/public/test-reports/manifest.json for the /test-reports page.
+ * frontend/public/qa-reports/manifest.json for the /test-reports page.
+ *
+ * Static assets live under /qa-reports/* (not /test-reports/*) so they do not
+ * collide with the Next.js App Router page at /test-reports.
  */
 const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const publicRoot = path.join(root, "frontend", "public", "test-reports");
+const publicRoot = path.join(root, "frontend", "public", "qa-reports");
 const surefireXmlDir = path.join(root, "backend", "build", "test-results", "test");
 const vitestJson = path.join(publicRoot, "frontend", "vitest", "results.json");
 
@@ -57,13 +60,13 @@ fs.mkdirSync(publicRoot, { recursive: true });
 const manifest = {
   generatedAt: new Date().toISOString(),
   backend: {
-    surefireIndex: "/test-reports/backend/surefire/index.html",
-    jacocoIndex: "/test-reports/backend/jacoco/index.html",
+    surefireIndex: "/qa-reports/backend/surefire/index.html",
+    jacocoIndex: "/qa-reports/backend/jacoco/index.html",
     summary: parseSurefireSummary(),
   },
   frontend: {
-    vitestIndex: "/test-reports/frontend/vitest/index.html",
-    coverageIndex: "/test-reports/frontend/coverage/index.html",
+    vitestIndex: "/qa-reports/frontend/vitest/index.html",
+    coverageIndex: "/qa-reports/frontend/coverage/index.html",
     summary: parseVitestSummary(),
   },
 };

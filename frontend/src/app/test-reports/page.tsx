@@ -23,11 +23,12 @@ export default function TestReportsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/test-reports/manifest.json", { cache: "no-store" })
+    // 静的ファイルは /qa-reports/*（App Router の /test-reports と衝突しない）
+    fetch("/qa-reports/manifest.json", { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(
-            "レポートがまだ生成されていません。リポジトリルートで scripts/run-tests-and-publish.ps1 を実行してください。",
+            "レポートがまだ生成されていません。ローカルでは scripts/run-tests-and-publish.ps1 を実行するか、Railway へ再デプロイ（Docker ビルド時に自動生成）してください。",
           );
         }
         return res.json() as Promise<Manifest>;
@@ -38,13 +39,19 @@ export default function TestReportsPage() {
       });
   }, []);
 
+  const backendSurefire = manifest?.backend?.surefireIndex ?? "/qa-reports/backend/surefire/index.html";
+  const backendJacoco = manifest?.backend?.jacocoIndex ?? "/qa-reports/backend/jacoco/index.html";
+  const frontendVitest = manifest?.frontend?.vitestIndex ?? "/qa-reports/frontend/vitest/index.html";
+  const frontendCoverage =
+    manifest?.frontend?.coverageIndex ?? "/qa-reports/frontend/coverage/index.html";
+
   return (
     <div className={styles.page}>
       <h1>テスト結果</h1>
       <p className={styles.lead}>
         Backend（JUnit / Surefire / JaCoCo）と Frontend（Vitest）の実行結果を Web から確認できます。
-        レポートは <code>scripts/run-tests-and-publish.ps1</code> 実行時に
-        <code>frontend/public/test-reports/</code> へ出力されます。
+        静的レポートは <code>/qa-reports/</code> に配置されます（画面 URL は{" "}
+        <code>/test-reports</code>）。
       </p>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -65,18 +72,18 @@ export default function TestReportsPage() {
             </ul>
           )}
           <div className={styles.links}>
-            <a href="/test-reports/backend/surefire/index.html" target="_blank" rel="noreferrer">
+            <a href={backendSurefire} target="_blank" rel="noreferrer">
               Surefire HTML レポートを開く
             </a>
-            <a href="/test-reports/backend/jacoco/index.html" target="_blank" rel="noreferrer">
+            <a href={backendJacoco} target="_blank" rel="noreferrer">
               JaCoCo カバレッジを開く
             </a>
           </div>
-          <iframe
-            className={styles.frame}
-            title="backend-surefire"
-            src="/test-reports/backend/surefire/index.html"
-          />
+          {manifest ? (
+            <iframe className={styles.frame} title="backend-surefire" src={backendSurefire} />
+          ) : (
+            <p className={styles.meta}>レポート読み込み待ち…</p>
+          )}
         </section>
 
         <section className={styles.card}>
@@ -89,18 +96,18 @@ export default function TestReportsPage() {
             </ul>
           )}
           <div className={styles.links}>
-            <a href="/test-reports/frontend/vitest/index.html" target="_blank" rel="noreferrer">
+            <a href={frontendVitest} target="_blank" rel="noreferrer">
               Vitest HTML レポートを開く
             </a>
-            <a href="/test-reports/frontend/coverage/index.html" target="_blank" rel="noreferrer">
+            <a href={frontendCoverage} target="_blank" rel="noreferrer">
               カバレッジを開く
             </a>
           </div>
-          <iframe
-            className={styles.frame}
-            title="frontend-vitest"
-            src="/test-reports/frontend/vitest/index.html"
-          />
+          {manifest ? (
+            <iframe className={styles.frame} title="frontend-vitest" src={frontendVitest} />
+          ) : (
+            <p className={styles.meta}>レポート読み込み待ち…</p>
+          )}
         </section>
       </div>
 

@@ -19,13 +19,13 @@ describe("TestReportsPage", () => {
       json: async () => ({
         generatedAt: "2026-08-13T09:00:00.000Z",
         backend: {
-          surefireIndex: "/test-reports/backend/surefire/index.html",
-          jacocoIndex: "/test-reports/backend/jacoco/index.html",
+          surefireIndex: "/qa-reports/backend/surefire/index.html",
+          jacocoIndex: "/qa-reports/backend/jacoco/index.html",
           summary: { tests: 59, failures: 0, errors: 0, skipped: 0 },
         },
         frontend: {
-          vitestIndex: "/test-reports/frontend/vitest/index.html",
-          coverageIndex: "/test-reports/frontend/coverage/index.html",
+          vitestIndex: "/qa-reports/frontend/vitest/index.html",
+          coverageIndex: "/qa-reports/frontend/coverage/index.html",
           summary: { numTotalTests: 13, numPassedTests: 13, numFailedTests: 0 },
         },
       }),
@@ -36,8 +36,9 @@ describe("TestReportsPage", () => {
     expect(screen.getByText(/passed: 13/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Surefire/ })).toHaveAttribute(
       "href",
-      "/test-reports/backend/surefire/index.html",
+      "/qa-reports/backend/surefire/index.html",
     );
+    expect(fetch).toHaveBeenCalledWith("/qa-reports/manifest.json", expect.any(Object));
   });
 
   it("shows guidance when manifest is missing", async () => {

@@ -66,10 +66,10 @@ jacocoTestReport {
     }
 }
 
-/** Surefire + JaCoCo HTML をフロントの public 配下へコピー（Web 確認用） */
+/** Surefire + JaCoCo HTML をフロントの public/qa-reports へコピー（App Router /test-reports と衝突しない） */
 tasks.register('publishTestReports', Copy) {
     dependsOn test, jacocoTestReport
-    into("${rootProject.projectDir}/../frontend/public/test-reports/backend")
+    into("${rootProject.projectDir}/../frontend/public/qa-reports/backend")
     from("${layout.buildDirectory.get()}/reports/tests/test") {
         into 'surefire'
     }

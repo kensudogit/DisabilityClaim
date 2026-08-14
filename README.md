@@ -54,9 +54,11 @@ npm run dev
 ```
 
 - ハブ画面: http://localhost:3000/test-reports
-- Backend Surefire: http://localhost:3000/test-reports/backend/surefire/index.html
-- Backend JaCoCo: http://localhost:3000/test-reports/backend/jacoco/index.html
-- Frontend Vitest: http://localhost:3000/test-reports/frontend/vitest/index.html
+- Backend Surefire: http://localhost:3000/qa-reports/backend/surefire/index.html
+- Backend JaCoCo: http://localhost:3000/qa-reports/backend/jacoco/index.html
+- Frontend Vitest: http://localhost:3000/qa-reports/frontend/vitest/index.html
+
+本番（Railway）では Docker ビルド時に `public/qa-reports` を同梱します。静的パスは App Router の `/test-reports` と衝突しないよう `/qa-reports/*` です。
 
 個別実行:
 
